@@ -53,8 +53,62 @@ insert (c:cs) valN (Node k valA l m r)  | (k == c) && (cs == []) = (Node k (Just
                                         | (c < k)   = (Node k valA (insert (c:cs) valN l) m r)
                                         | otherwise = (Node  k valA r m (insert (c:cs) valN r))
 
+{-
+    key devuelve el codigo de un nodo
+-}
+key :: Ord k => TTree k v -> k
+key (Leaf k _) = k
+key (Node k _ _ _ _) = k
+
+{-
+    value devuelve el valor de un nodo
+-}
+value :: Ord k => TTree k v -> v
+key (Leaf _ v) = v
+key (Node _ v _ _ _) = v
+
+{-
+    middle_son devuelve el hijo del medio
+-}
+middle_son :: Ord k => TTree k v -> TTree k v
+middle_son E = E
+middle_son (Leaf _ _) = E
+middle_son (Node _ _ _ m _) = m
 
 {-
     delete elimina una clave y el valor asociado a esta.
 -}
 delete :: Ord k => [k] -> TTree k v -> TTree k v
+delete _ E = E
+delete (c:cs) (Leaf k val)  | (c == k) && (cs == []) = E
+                            | otherwise = Leaf k val
+delete (c:cs) (Node k val l E E)    | (c == k) && (cs == []) = l
+                                    | (c < k) = (Node k val (delete (c:cs) l) E E)
+                                    | otherwise (Node k val l E E)
+delete (c:cs) (Node k val E E r)    | (c == k) && (cs == []) = l
+                                    | (c > k) = (Node k val E E (delete (c:cs) r))
+                                    | otherwise (Node k val E E r)
+delete (c:cs) (Node k val l E r)    | (c == k) && (cs == []) = (aux l r)
+                                    | (c < k) = (Node k val (delete (c:cs) l) E r)                                    
+                                    | (c > k) = (Node k val l E (delete (c:cs) r))
+                                    | otherwise (Node k val l E r)
+    where
+        aux :: Ord k => TTree k v -> TTree k v -> TTree k v
+        aux (Leaf k v) r = Node k v E E r
+        aux l (Leaf k v) = Node k v l E E
+        aux (Node lk lv ll lm lr) (Node rk rv rl rm rr) = (Node key(right_most l) value(right_most l) (righted l) (middle_son(right_most l)) r)
+        right_most :: Ord k => TTree k v -> TTree k v
+        right_most (Leaf k v) = (Leaf k v)
+        right_most (Node k v l m E) = (Node k v E m E)
+        right_most (Node k v l m r) = (right_most r)
+        righted :: Ord k => TTree k v -> TTree k v
+        righted (Leaf k v) = E
+        righted (Node k v l m E) = (Node k v l E E)
+        righted (Node k v l m r) = 
+
+
+delete (c:cs) (Node k val l m r)    | (c == k) && (cs == []) = (Node k Nothing l m r)
+                                    | (c == k) = (Node k val l (delete cs m) r) 
+                                    | (c < k) = (Node k val (delete (c:cs) l) m r)
+                                    | (c > k) = (Node k val l m (delete (c:cs) r))
+                                    | otherwise = (Node k val l m E) 
