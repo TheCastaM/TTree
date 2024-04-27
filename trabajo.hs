@@ -1,3 +1,7 @@
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE FunctionalDependencies #-}
+
 data TTree k v = Node k (Maybe v) (TTree k v) (TTree k v) (TTree k v)
                 | Leaf k v
                 | E deriving Show
@@ -10,21 +14,15 @@ data TTree k v = Node k (Maybe v) (TTree k v) (TTree k v) (TTree k v)
 -}
 
 {-
-t = Node 'r' Nothing E (Node 'e' (Just 16) (Node 'a' Nothing E (Leaf 's' 1) E)(Node 'o' (Just 2) (Leaf 'd' 9)E(Leaf 's' 4))E)(Node 's' Nothing E (Node 'i' (Just 4) (Leaf 'e' 8)(Leaf 'n' 7)E)E)
+    search devuelve el valor asociado a una clave.
 -}
-
-
-{-
-    serch devuelve el valor asociado a una clave.
--}
-serch :: Ord k => [k] -> TTree k v -> Maybe v
-serch _ E = Nothing
-serch (c:cs) (Leaf k val) = if ((c == k) && (cs == [])) then Just val else Nothing
-serch (c:cs) (Node k val l m r) | (c == k) = if (cs == []) then val else serch cs m
-                                | (c < k) = serch (c:cs) l
-                                | (c > k) = serch (c:cs) r
+search :: Ord k => [k] -> TTree k v -> Maybe v
+search _ E = Nothing
+search (c:cs) (Leaf k val) = if ((c == k) && (cs == [])) then Just val else Nothing
+search (c:cs) (Node k val l m r) | (c == k) = if (cs == []) then val else search cs m
+                                | (c < k) = search (c:cs) l
+                                | (c > k) = search (c:cs) r
                                 | otherwise = Nothing
-
 
 isEmpty :: Ord k => TTree k v -> Bool
 isEmpty E = True
@@ -155,3 +153,31 @@ keys (Node k v l m r) = keys(l) ++  [[k]] ++ (map (\x -> k : x) (keys m)) ++ key
 t = Node 'r' Nothing E (Node 'e' (Just 16) (Node 'a' Nothing E (Leaf 's' 1) E)(Node 'o' (Just 2) (Leaf 'd' 9)E(Leaf 's' 4))E)(Node 's' Nothing E (Node 'i' (Just 4) (Leaf 'e' 8)(Leaf 'n' 7)E)E)
 
 
+
+
+
+
+
+class Dic k v d | d -> k v 
+    where
+        vacio :: d
+        insertar :: Ord k => k -> v -> d -> d
+        buscar :: Ord k => k -> d -> Maybe v
+        eliminar :: Ord k => k -> d -> d
+        claves :: Ord k => d -> [k]
+
+instance Dic k v (TTree k v) where
+  -- Diccionario vacío
+  vacio = E
+
+  -- Insertar un par clave-valor
+  insertar k val tree = insert (k:[]) val tree  -- La clave se representa como lista de un elemento
+
+  -- Buscar el valor asociado a una clave
+  buscar k tree = search (k:[]) tree  -- La clave se representa como lista de un elemento
+
+  -- Eliminar una clave y su valor asociado
+  eliminar k tree = delete (k:[]) tree  -- La clave se representa como lista de un elemento
+
+  -- Obtener todas las claves del árbol
+  claves tree = map head (keys tree)  -- Extrae la primera clave de cada sublista en keys
