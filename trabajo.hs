@@ -158,26 +158,25 @@ t = Node 'r' Nothing E (Node 'e' (Just 16) (Node 'a' Nothing E (Leaf 's' 1) E)(N
 
 
 
-class Dic k v d | d -> k v 
-    where
-        vacio :: d
-        insertar :: Ord k => k -> v -> d -> d
-        buscar :: Ord k => k -> d -> Maybe v
-        eliminar :: Ord k => k -> d -> d
-        claves :: Ord k => d -> [k]
+class Dic k v d | d -> k v where
+    vacio :: d
+    insertar :: Ord k => k -> v -> d -> d
+    buscar :: Ord k => k -> d -> Maybe v
+    eliminar :: Ord k => k -> d -> d
+    claves :: Ord k => d -> [k]
 
-instance Dic k v (TTree k v) where
+instance Ord k => Dic [k] v (TTree k v) where
   -- Diccionario vacío
   vacio = E
 
   -- Insertar un par clave-valor
-  insertar k val tree = insert (k:[]) val tree  -- La clave se representa como lista de un elemento
+  insertar = insert  -- Use key directly (no list)
 
   -- Buscar el valor asociado a una clave
-  buscar k tree = search (k:[]) tree  -- La clave se representa como lista de un elemento
+  buscar = search  -- Use key directly (no list), fixed syntax error
 
   -- Eliminar una clave y su valor asociado
-  eliminar k tree = delete (k:[]) tree  -- La clave se representa como lista de un elemento
+  eliminar = delete   -- Use key directly (no list)
 
   -- Obtener todas las claves del árbol
-  claves tree = map head (keys tree)  -- Extrae la primera clave de cada sublista en keys
+  claves = keys  -- Return all keys from TTree's keys function
