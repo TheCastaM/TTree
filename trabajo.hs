@@ -51,7 +51,7 @@ insert (c:cs) valN (Leaf k valA)    | (k == c) && (cs == []) = (Leaf k valN)
 insert (c:cs) valN (Node k valA l m r)  | (k == c) && (cs == []) = (Node k (Just valN) l m r)
                                         | (k == c)  = (Node k valA l (insert cs valN m) r)
                                         | (c < k)   = (Node k valA (insert (c:cs) valN l) m r)
-                                        | otherwise = (Node  k valA r m (insert (c:cs) valN r))
+                                        | otherwise = (Node  k valA l m (insert (c:cs) valN r))
 
 {-
     key devuelve el codigo de un nodo
@@ -75,6 +75,10 @@ middle_son E = E
 middle_son (Leaf _ _) = E
 middle_son (Node _ _ _ m _) = m
 
+-- nada :: Ord k => TTree k v -> TTree k v -> TTree k v
+-- nada (Node k v l m _) r = (Node k v (Node k v l m r) m r)
+
+
 {-
     delete elimina una clave y el valor asociado a esta.
 -}
@@ -96,8 +100,8 @@ delete (c:cs) (Node k val l E r)    | (c == k) && (cs == []) = (aux l r)
         aux :: Ord k => TTree k v -> TTree k v -> TTree k v
         aux (Leaf k v) r = Node k (Just v) E E r
         aux l (Leaf k v) = Node k (Just v) l E E
-        aux (Node k lv ll lm lr) r = (Node  key(right_most lr) 
-                                            (Just value(right_most lr)) 
+        aux (Node k lv ll lm lr) r = (Node (key(right_most lr)) 
+                                            (value(right_most lr)) 
                                             (Node k lv ll lm (righted lr))
                                             (middle_son(right_most lr)) 
                                             r)
@@ -110,8 +114,18 @@ delete (c:cs) (Node k val l E r)    | (c == k) && (cs == []) = (aux l r)
         righted (Node k v l m (Leaf _ _)) = (Node k v l m E)
         righted (Node k v l m (Node _ _ l1 _ E)) = (Node k v l m l1)
         righted (Node k v l m r) = (Node k v l m (righted r))
+
 delete (c:cs) (Node k val l m r)    | (c == k) && (cs == []) = (Node k Nothing l m r)
                                     | (c == k) = (Node k val l (delete cs m) r) 
                                     | (c < k) = (Node k val (delete (c:cs) l) m r)
                                     | (c > k) = (Node k val l m (delete (c:cs) r))
                                     | otherwise = (Node k val l m E) 
+
+
+t = Node 'r' Nothing E (Node 'e' (Just 16) (Node 'a' Nothing E (Leaf 's' 1) E)(Node 'o' (Just 2) (Leaf 'd' 9)E(Leaf 's' 4))E)(Node 's' Nothing E (Node 'i' (Just 4) (Leaf 'e' 8)(Leaf 'n' 7)E)E)
+tree = insert "rea" 1 t
+tree1 = insert "reda" 2 tree
+tree2 = insert "ree" 3 tree1
+tree3 = insert "rez" 4 tree2
+tree4 = insert "resa" 5 tree3
+ftree = insert "rer" 5 tree4
