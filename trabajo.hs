@@ -75,9 +75,10 @@ middle_son E = E
 middle_son (Leaf _ _) = E
 middle_son (Node _ _ _ m _) = m
 
--- nada :: Ord k => TTree k v -> TTree k v -> TTree k v
--- nada (Node k v l m _) r = (Node k v (Node k v l m r) m r)
-
+check :: Ord k => TTree k v -> TTree k v
+check E = E
+check (Node _ Nothing E E E) = E
+check t = t
 
 {-
     delete elimina una clave y el valor asociado a esta.
@@ -87,14 +88,14 @@ delete _ E = E
 delete (c:cs) (Leaf k val)  | (c == k) && (cs == []) = E
                             | otherwise = Leaf k val
 delete (c:cs) (Node k val l E E)    | (c == k) && (cs == []) = l
-                                    | (c < k) = (Node k val (delete (c:cs) l) E E)
+                                    | (c < k) = check((Node k val (delete (c:cs) l) E E))
                                     | otherwise = (Node k val l E E)
 delete (c:cs) (Node k val E E r)    | (c == k) && (cs == []) = r
-                                    | (c > k) = (Node k val E E (delete (c:cs) r))
+                                    | (c > k) = check((Node k val E E (delete (c:cs) r)))
                                     | otherwise = (Node k val E E r)
-delete (c:cs) (Node k val l E r)    | (c == k) && (cs == []) = (aux l r)
-                                    | (c < k) = (Node k val (delete (c:cs) l) E r)                                    
-                                    | (c > k) = (Node k val l E (delete (c:cs) r))
+delete (c:cs) (Node k val l E r)    | (c == k) && (cs == []) = check((aux l r))
+                                    | (c < k) = check((Node k val (delete (c:cs) l) E r))                                    
+                                    | (c > k) = check((Node k val l E (delete (c:cs) r)))
                                     | otherwise = (Node k val l E r)
     where
         aux :: Ord k => TTree k v -> TTree k v -> TTree k v
@@ -114,14 +115,12 @@ delete (c:cs) (Node k val l E r)    | (c == k) && (cs == []) = (aux l r)
         righted (Node k v l m (Leaf _ _)) = (Node k v l m E)
         righted (Node k v l m (Node _ _ l1 _ E)) = (Node k v l m l1)
         righted (Node k v l m r) = (Node k v l m (righted r))
-
-delete (c:cs) (Node k val l m r)    | (c == k) && (cs == []) = (Node k Nothing l m r)
-                                    | (c == k) = (Node k val l (delete cs m) r) 
-                                    | (c < k) = (Node k val (delete (c:cs) l) m r)
-                                    | (c > k) = (Node k val l m (delete (c:cs) r))
+delete (c:cs) (Node k val l m r)    | (c == k) && (cs == []) = check((Node k Nothing l m r))
+                                    | (c == k) = check((Node k val l (delete cs m) r)) 
+                                    | (c < k) = check((Node k val (delete (c:cs) l) m r))
+                                    | (c > k) = check((Node k val l m (delete (c:cs) r)))
                                     | otherwise = (Node k val l m E) 
-
-
+    
 t = Node 'r' Nothing E (Node 'e' (Just 16) (Node 'a' Nothing E (Leaf 's' 1) E)(Node 'o' (Just 2) (Leaf 'd' 9)E(Leaf 's' 4))E)(Node 's' Nothing E (Node 'i' (Just 4) (Leaf 'e' 8)(Leaf 'n' 7)E)E)
 tree = insert "rea" 1 t
 tree1 = insert "reda" 2 tree
