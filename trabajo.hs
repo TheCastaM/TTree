@@ -120,11 +120,38 @@ delete (c:cs) (Node k val l m r)    | (c == k) && (cs == []) = check((Node k Not
                                     | (c < k) = check((Node k val (delete (c:cs) l) m r))
                                     | (c > k) = check((Node k val l m (delete (c:cs) r)))
                                     | otherwise = (Node k val l m E) 
-    
+
+
+keys :: Ord k => TTree k v -> [[k]]
+keys E = [[]]
+keys (Leaf k v) = [[k]]
+
+keys (Node k Nothing E m E) =
+    (map (\x -> k : x) (keys m))
+
+keys (Node k v E m E) =
+   [[k]] ++ (map (\x -> k : x) (keys m))
+
+keys (Node k Nothing E m r) =
+    (map (\x -> k : x) (keys m)) ++ keys r
+
+keys (Node k v E m r) =
+   [[k]] ++ (map (\x -> k : x) (keys m)) ++ keys r
+
+keys (Node k Nothing l m E) =
+   keys l ++ (map (\x -> k : x) (keys m))
+
+keys (Node k v l m E) =
+   keys l ++ [[k]] ++ (map (\x -> k : x) (keys m)) 
+
+keys (Node k Nothing l E r) = keys(l) ++ keys r
+
+keys (Node k v l E r) = keys(l) ++ [[k]] ++ keys r
+
+keys (Node k Nothing l m r)  = keys(l) ++ (map (\x -> k : x) (keys m)) ++ keys r
+
+keys (Node k v l m r) = keys(l) ++  [[k]] ++ (map (\x -> k : x) (keys m)) ++ keys r
+
 t = Node 'r' Nothing E (Node 'e' (Just 16) (Node 'a' Nothing E (Leaf 's' 1) E)(Node 'o' (Just 2) (Leaf 'd' 9)E(Leaf 's' 4))E)(Node 's' Nothing E (Node 'i' (Just 4) (Leaf 'e' 8)(Leaf 'n' 7)E)E)
-tree = insert "rea" 1 t
-tree1 = insert "reda" 2 tree
-tree2 = insert "ree" 3 tree1
-tree3 = insert "rez" 4 tree2
-tree4 = insert "resa" 5 tree3
-ftree = insert "rer" 5 tree4
+
+
