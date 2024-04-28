@@ -49,36 +49,14 @@ insert (c:cs) valN (Node k valA l m r)  | (k == c) && (cs == []) = (Node k (Just
                                         | (c < k)   = (Node k valA (insert (c:cs) valN l) m r)
                                         | otherwise = (Node  k valA l m (insert (c:cs) valN r))
 
-
-
-{-
-    key devuelve el codigo de un nodo
--}
-key :: Ord k => TTree k v -> k
-key (Leaf k _) = k
-key (Node k _ _ _ _) = k
-
-{-
-    value devuelve el valor de un nodo
--}
-value :: Ord k => TTree k v -> Maybe v
-value (Leaf _ v) = Just v
-value (Node _ v _ _ _) = v
-
-{-
-    middle_son devuelve el hijo del medio
--}
-middle_son :: Ord k => TTree k v -> TTree k v
-middle_son E = E
-middle_son (Leaf _ _) = E
-middle_son (Node _ _ _ m _) = m
-
 {-
     check evalua que no haya una rama que no tenga valores.
 -}
 check :: Ord k => TTree k v -> TTree k v
 check E = E
 check (Node _ Nothing E E E) = E
+check (Node _ Nothing l E E) = l
+check (Node _ Nothing E E r) = r
 check t = t
 
 {-
@@ -104,6 +82,16 @@ delete (c:cs) (Node k val l E r)    | (c == k) && (cs == []) = check((aux l r))
                                             (Node k v l m (righted lr))
                                             (middle_son(right_most lr)) 
                                             r)
+            where
+                key :: Ord k => TTree k v -> k
+                key (Leaf k _) = k
+                key (Node k _ _ _ _) = k
+                middle_son :: Ord k => TTree k v -> TTree k v
+                middle_son (Leaf _ _) = E
+                middle_son (Node _ _ _ m _) = m
+                value :: Ord k => TTree k v -> Maybe v
+                value (Leaf _ v) = Just v
+                value (Node _ v _ _ _) = v
         right_most :: Ord k => TTree k v -> TTree k v
         right_most (Leaf k v) = (Leaf k v)
         right_most (Node k v l m E) = (Node k v E m E)
@@ -115,8 +103,7 @@ delete (c:cs) (Node k val l E r)    | (c == k) && (cs == []) = check((aux l r))
 delete (c:cs) (Node k val l m r)    | (c == k) && (cs == []) = check((Node k Nothing l m r))
                                     | (c == k) = check((Node k val l (delete cs m) r)) 
                                     | (c < k) = check((Node k val (delete (c:cs) l) m r))
-                                    | (c > k) = check((Node k val l m (delete (c:cs) r)))
-                                    | otherwise = (Node k val l m E) 
+                                    | otherwise = check((Node k val l m (delete (c:cs) r)))
 
 
 
