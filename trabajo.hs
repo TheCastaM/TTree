@@ -120,63 +120,39 @@ delete (c:cs) (Node k val l m r)    | (c == k) && (cs == []) = check((Node k Not
                                     | otherwise = (Node k val l m E) 
 
 
+
 keys :: Ord k => TTree k v -> [[k]]
 keys E = [[]]
 keys (Leaf k v) = [[k]]
+keys (Node k v l m r) = case v of 
+    Nothing -> caseNothing (Node k v l m r)
+    Just a -> caseJustA (Node k v l m r)
+    where
+        caseNothing (Node k v E m E) = map (\x -> k : x) (keys m) 
+        caseNothing (Node k v E m r) = map (\x -> k : x) (keys m) ++ keys r 
+        caseNothing (Node k v l m E) = keys l ++ map (\x -> k : x) (keys m) 
+        caseNothing (Node k v l E r) = keys l ++ keys m
 
-keys (Node k Nothing E m E) =
-    (map (\x -> k : x) (keys m))
-
-keys (Node k v E m E) =
-   [[k]] ++ (map (\x -> k : x) (keys m))
-
-keys (Node k Nothing E m r) =
-    (map (\x -> k : x) (keys m)) ++ keys r
-
-keys (Node k v E m r) =
-   [[k]] ++ (map (\x -> k : x) (keys m)) ++ keys r
-
-keys (Node k Nothing l m E) =
-   keys l ++ (map (\x -> k : x) (keys m))
-
-keys (Node k v l m E) =
-   keys l ++ [[k]] ++ (map (\x -> k : x) (keys m)) 
-
-keys (Node k Nothing l E r) = keys(l) ++ keys r
-
-keys (Node k v l E r) = keys(l) ++ [[k]] ++ keys r
-
-keys (Node k Nothing l m r)  = keys(l) ++ (map (\x -> k : x) (keys m)) ++ keys r
-
-keys (Node k v l m r) = keys(l) ++  [[k]] ++ (map (\x -> k : x) (keys m)) ++ keys r
+        caseJustA (Node k v E m E) = [[k]] ++ map (\x -> k : x) (keys m) 
+        caseJustA (Node k v E m r) = [[k]] ++ map (\x -> k : x) (keys m) ++ keys r 
+        caseJustA (Node k v l m E) = keys l ++ [[k]] ++ map (\x -> k : x) (keys m) 
+        caseJustA (Node k v l E r) = keys l ++ [[k]] ++ keys m
 
 t = Node 'r' Nothing E (Node 'e' (Just 16) (Node 'a' Nothing E (Leaf 's' 1) E)(Node 'o' (Just 2) (Leaf 'd' 9)E(Leaf 's' 4))E)(Node 's' Nothing E (Node 'i' (Just 4) (Leaf 'e' 8)(Leaf 'n' 7)E)E)
 
 
-
-
-
-
-
-class Dic k v d | d -> k v where
-    vacio :: d
-    insertar :: Ord k => k -> v -> d -> d
-    buscar :: Ord k => k -> d -> Maybe v
-    eliminar :: Ord k => k -> d -> d
-    claves :: Ord k => d -> [k]
+class Dic k v d | d -> k v 
+    where
+        vacio :: d
+        insertar :: Ord k => k -> v -> d -> d
+        buscar :: Ord k => k -> d -> Maybe v
+        eliminar :: Ord k => k -> d -> d
+        claves :: Ord k => d -> [k]
 
 instance Ord k => Dic [k] v (TTree k v) where
-  -- Diccionario vacío
-  vacio = E
+    vacio = E
+    insertar = insert
+    buscar = search
+    eliminar = delete
+    claves = keys
 
-  -- Insertar un par clave-valor
-  insertar = insert  -- Use key directly (no list)
-
-  -- Buscar el valor asociado a una clave
-  buscar = search  -- Use key directly (no list), fixed syntax error
-
-  -- Eliminar una clave y su valor asociado
-  eliminar = delete   -- Use key directly (no list)
-
-  -- Obtener todas las claves del árbol
-  claves = keys  -- Return all keys from TTree's keys function
