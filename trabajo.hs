@@ -13,42 +13,31 @@ data TTree k v = Node k (Maybe v) (TTree k v) (TTree k v) (TTree k v)
     existe en el caso de que el codigo este asociado a ese valor.
 -}
 
-{-
-    a) search devuelve el valor asociado a una clave.
--}
-search :: Ord k => [k] -> TTree k v -> Maybe v
-search _ E = Nothing
-search (c:cs) (Leaf k val) = if ((c == k) && (cs == [])) 
-                                then Just val 
-                                else Nothing
-search (c:cs) (Node k val l m r)    | (c == k) = if (cs == []) then val else search cs m
-                                    | (c < k) = search (c:cs) l
-                                    | (c > k) = search (c:cs) r
-                                    | otherwise = Nothing
+search [] _ = Nothing
+search x E = Nothing
+search (x:xs) (Leaf k v) | (xs == []) && (x == k) = Just v
+                         | otherwise = Nothing
+search (x:xs) (Node k v l m r) | (xs == []) && (x == k) = v
+                               | (x > k) = search (x:xs) r
+                               | (x < k) = search (x:xs) l
+                               | otherwise = search xs m
 
 
-
-{-
-    crea_node crea los nodes de una clave.
--}
-crea_node :: Ord k => [k] -> v -> TTree k v
-crea_node (c:cs) v   | cs == [] = (Leaf c v)
-                    | otherwise = (Node c Nothing E (crea_node cs v) E)
-
-{-
-    insert agrega un par (clave, valor) a un arbol.
--}
 insert :: Ord k => [k] -> v -> TTree k v -> TTree k v
-insert (c:cs) valN E = crea_node (c:cs) valN
-insert (c:cs) valN (Leaf k valA)    | (k == c) && (cs == []) = (Leaf k valN)
-                                    | (k == c)  = (Node k (Just valA) E (crea_node cs valN) E)
-                                    | (c < k)   = (Node k (Just valA) (crea_node (c:cs) valN) E E)
-                                    | otherwise = (Node k (Just valA) E E (crea_node (c:cs) valN))
-insert (c:cs) valN (Node k valA l m r)  | (k == c) && (cs == []) = (Node k (Just valN) l m r)
-                                        | (k == c)  = (Node k valA l (insert cs valN m) r)
-                                        | (c < k)   = (Node k valA (insert (c:cs) valN l) m r)
-                                        | otherwise = (Node  k valA l m (insert (c:cs) valN r))
 
+insert (x:xs) val E | xs == [] = (Node x (Just val) E E E)
+                  | otherwise = (Node x Nothing E (insert xs val E) E)
+
+insert (x:xs) val (Leaf k v) | xs == [] = (Node k (Just v) E (Leaf x val) E)
+                             | otherwise = (Node k (Just v) E (insert (x:xs) val E) E)
+
+insert (x:[]) val (Node k v l m r) | x < k = (Node k v (insert (x:[]) val l) m r)
+                                   | x > k = (Node k v l m (insert (x:[]) val r))
+                                   | otherwise = (Node k (Just val) l m r)
+
+insert (x:xs) val (Node k v l m r) | x < k = insert (x:xs) val l
+                                   | x > k = (Node k v l m (insert (x:xs) val r))
+                                   | otherwise = (Node k v l (insert xs val m) r) 
 {-
     check evalua que no haya una rama que no tenga valores.
 -}
