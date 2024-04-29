@@ -40,7 +40,7 @@ insert (x:[]) val (Node k v l m r) | x < k = (Node k v (insert (x:[]) val l) m r
                                    | x > k = (Node k v l m (insert (x:[]) val r))
                                    | otherwise = (Node k (Just val) l m r)
 
-insert (x:xs) val (Node k v l m r) | x < k = insert (x:xs) val l
+insert (x:xs) val (Node k v l m r) | x < k = (Node k v (insert (x:xs) val l) m r)
                                    | x > k = (Node k v l m (insert (x:xs) val r))
                                    | otherwise = (Node k v l (insert xs val m) r) 
 {-
