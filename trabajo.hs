@@ -25,11 +25,16 @@ search (x:xs) (Node k v l m r) | (xs == []) && (x == k) = v
 
 insert :: Ord k => [k] -> v -> TTree k v -> TTree k v
 
-insert (x:xs) val E | xs == [] = (Node x (Just val) E E E)
+insert (x:xs) val E | xs == [] = (Leaf x val)
                   | otherwise = (Node x Nothing E (insert xs val E) E)
 
-insert (x:xs) val (Leaf k v) | xs == [] = (Node k (Just v) E (Leaf x val) E)
-                             | otherwise = (Node k (Just v) E (insert (x:xs) val E) E)
+insert (x:[]) val (Leaf k v) | x < k = (Node k (Just v) (Leaf x val) E E)
+                             | x > k = (Node k (Just v) E E (Leaf x val))
+                             | otherwise = (Node k (Just v) E (Leaf x val) E)
+
+insert (x:xs) val (Leaf k v) | x < k = (Node k (Just v) (insert (x:xs) val E) E E)
+                             | x > k = (Node k (Just v) E E (insert (x:xs) val E))
+                             | otherwise = (Node k (Just v) E (insert xs val E) E)
 
 insert (x:[]) val (Node k v l m r) | x < k = (Node k v (insert (x:[]) val l) m r)
                                    | x > k = (Node k v l m (insert (x:[]) val r))
