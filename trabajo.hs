@@ -107,20 +107,34 @@ delete (c:cs) (Node k val l m r)    | (c == k) && (cs == []) = check((Node k Not
 
 keys :: Ord k => TTree k v -> [[k]]
 keys E = [[]]
-keys (Leaf k v) = [[k]]
-keys (Node k v l m r) = case v of 
-    Nothing -> caseNothing (Node k v l m r)
-    Just a -> caseJustA (Node k v l m r)
-    where
-        caseNothing (Node k v E m E) = map (\x -> k : x) (keys m) 
-        caseNothing (Node k v E m r) = map (\x -> k : x) (keys m) ++ keys r 
-        caseNothing (Node k v l m E) = keys l ++ map (\x -> k : x) (keys m) 
-        caseNothing (Node k v l E r) = keys l ++ keys m
 
-        caseJustA (Node k v E m E) = [[k]] ++ map (\x -> k : x) (keys m) 
-        caseJustA (Node k v E m r) = [[k]] ++ map (\x -> k : x) (keys m) ++ keys r 
-        caseJustA (Node k v l m E) = keys l ++ [[k]] ++ map (\x -> k : x) (keys m) 
-        caseJustA (Node k v l E r) = keys l ++ [[k]] ++ keys m
+keys (Leaf k v) = [[k]]
+
+keys (Node k Nothing E m E) =
+    (map (\x -> k : x) (keys m))
+
+keys (Node k v E m E) =
+   [[k]] ++ (map (\x -> k : x) (keys m))
+
+keys (Node k Nothing E m r) =
+    (map (\x -> k : x) (keys m)) ++ keys r
+
+keys (Node k v E m r) =
+   [[k]] ++ (map (\x -> k : x) (keys m)) ++ keys r
+
+keys (Node k Nothing l m E) =
+   keys l ++ (map (\x -> k : x) (keys m))
+
+keys (Node k v l m E) =
+   keys l ++ [[k]] ++ (map (\x -> k : x) (keys m)) 
+
+keys (Node k Nothing l E r) = keys(l) ++ keys r
+
+keys (Node k v l E r) = keys(l) ++ [[k]] ++ keys r
+
+keys (Node k Nothing l m r)  = keys(l) ++ (map (\x -> k : x) (keys m)) ++ keys r
+
+keys (Node k v l m r) = keys(l) ++  [[k]] ++ (map (\x -> k : x) (keys m)) ++ keys r
 
 
 class Dic k v d | d -> k v where
